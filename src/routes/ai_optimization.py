@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 import random
-import numpy as np
+import statistics
 from datetime import datetime, timedelta
 from src.models.mining_data import MiningData
 from src.models.user import db
@@ -39,11 +39,11 @@ class AdvancedMiningOptimizer:
         profitabilities = [data.profitability for data in recent_data if data.profitability is not None]
         
         analysis = {
-            "avg_hashrate": np.mean(hashrates),
-            "avg_power": np.mean(power_consumptions),
-            "avg_temperature": np.mean(temperatures),
-            "avg_profitability": np.mean(profitabilities) if profitabilities else 0,
-            "efficiency_ratio": np.mean(hashrates) / np.mean(power_consumptions) if np.mean(power_consumptions) > 0 else 0,
+            "avg_hashrate": statistics.mean(hashrates),
+            "avg_power": statistics.mean(power_consumptions),
+            "avg_temperature": statistics.mean(temperatures),
+            "avg_profitability": statistics.mean(profitabilities) if profitabilities else 0,
+            "efficiency_ratio": statistics.mean(hashrates) / statistics.mean(power_consumptions) if statistics.mean(power_consumptions) > 0 else 0,
             "data_points": len(recent_data)
         }
         
