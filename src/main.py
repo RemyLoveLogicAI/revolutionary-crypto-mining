@@ -9,9 +9,12 @@ from src.models.user import db
 from src.models.mining_data import MiningData
 from src.models.profitability import ProfitabilityData, MiningSession
 from src.models.ai_models import AIModel, OptimizationDecision, CloudStorageData
+from src.models.wallet import UserWallet, PayoutRequest, EarningsBalance, PayoutTransaction
 from src.routes.user import user_bp
 from src.routes.mining import mining_bp
 from src.routes.ai_optimization import ai_optimization_bp
+from src.routes.realtime import realtime_bp
+from src.routes.wallet import wallet_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
@@ -22,6 +25,8 @@ CORS(app)
 app.register_blueprint(user_bp, url_prefix='/api')
 app.register_blueprint(mining_bp, url_prefix='/api/mining')
 app.register_blueprint(ai_optimization_bp, url_prefix='/api/ai')
+app.register_blueprint(realtime_bp, url_prefix='/api/realtime')
+app.register_blueprint(wallet_bp, url_prefix='/api/wallet')
 
 # uncomment if you need to use database
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"

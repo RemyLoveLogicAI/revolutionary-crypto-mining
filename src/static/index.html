@@ -14,7 +14,7 @@
             min-height: 100vh;
         }
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             background-color: rgba(255, 255, 255, 0.95);
             padding: 30px;
@@ -47,10 +47,17 @@
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             border-left: 4px solid #667eea;
+            transition: transform 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-2px);
         }
         .card h3 {
             margin-top: 0;
             color: #4a5568;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         .metric {
             display: flex;
@@ -69,6 +76,19 @@
         .metric-value {
             color: #667eea;
             font-weight: bold;
+        }
+        .real-time-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #48bb78;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
         }
         button {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -131,12 +151,14 @@
             display: flex;
             margin-bottom: 20px;
             border-bottom: 2px solid #e2e8f0;
+            overflow-x: auto;
         }
         .tab {
             padding: 12px 24px;
             cursor: pointer;
             border-bottom: 2px solid transparent;
             transition: all 0.3s ease;
+            white-space: nowrap;
         }
         .tab.active {
             border-bottom-color: #667eea;
@@ -161,27 +183,101 @@
             color: #48bb78;
             font-weight: bold;
         }
+        .wallet-address {
+            font-family: monospace;
+            background: #f7fafc;
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            word-break: break-all;
+        }
+        .balance-card {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            border-left: none;
+        }
+        .balance-card .metric-value {
+            color: white;
+        }
+        .payout-history {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .payout-item {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            background: #f9f9f9;
+        }
+        .payout-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .status-completed { background: #c6f6d5; color: #22543d; }
+        .status-pending { background: #fed7d7; color: #742a2a; }
+        .status-processing { background: #feebc8; color: #7b341e; }
+        .status-failed { background: #fed7d7; color: #742a2a; }
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        .connected {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        .disconnected {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+        .chart-container {
+            height: 200px;
+            margin: 20px 0;
+            background: #f7fafc;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #a0aec0;
+        }
     </style>
 </head>
 <body>
+    <div class="connection-status" id="connectionStatus">
+        <span class="real-time-indicator"></span> Connecting...
+    </div>
+
     <div class="container">
         <h1>🚀 Revolutionary Crypto Mining Platform</h1>
         <p style="text-align: center; font-size: 1.2em; color: #4a5568; margin-bottom: 30px;">
-            AI-Powered Mining Optimization Without Specialized Hardware
+            AI-Powered Mining Optimization with Real-Time Monitoring & Crypto Payouts
         </p>
 
         <div class="tabs">
-            <div class="tab active" onclick="switchTab('dashboard')">Dashboard</div>
-            <div class="tab" onclick="switchTab('ai-optimization')">AI Optimization</div>
-            <div class="tab" onclick="switchTab('profitability')">Profitability</div>
-            <div class="tab" onclick="switchTab('cloud-storage')">Cloud Storage</div>
+            <div class="tab active" onclick="switchTab('dashboard')">📊 Dashboard</div>
+            <div class="tab" onclick="switchTab('ai-optimization')">🤖 AI Optimization</div>
+            <div class="tab" onclick="switchTab('profitability')">💰 Profitability</div>
+            <div class="tab" onclick="switchTab('wallet')">💳 Wallet & Payouts</div>
+            <div class="tab" onclick="switchTab('cloud-storage')">☁️ Cloud Storage</div>
         </div>
 
         <!-- Dashboard Tab -->
         <div id="dashboard" class="tab-content active">
             <div class="dashboard">
                 <div class="card">
-                    <h3><span class="status-indicator status-online"></span>Mining Status</h3>
+                    <h3>
+                        <span class="status-indicator status-online"></span>
+                        <span class="real-time-indicator"></span>
+                        Real-Time Mining Status
+                    </h3>
                     <div class="metric">
                         <span class="metric-label">Hashrate:</span>
                         <span class="metric-value" id="hashrate">Loading...</span>
@@ -195,50 +291,72 @@
                         <span class="metric-value" id="temperature">Loading...</span>
                     </div>
                     <div class="metric">
+                        <span class="metric-label">Efficiency:</span>
+                        <span class="metric-value" id="efficiency">Loading...</span>
+                    </div>
+                    <div class="metric">
                         <span class="metric-label">Profitability:</span>
                         <span class="metric-value" id="profitability">Loading...</span>
                     </div>
-                    <button onclick="getMiningStatus()">🔄 Refresh Status</button>
                 </div>
 
                 <div class="card">
-                    <h3>🤖 AI Optimization</h3>
+                    <h3>
+                        🤖 Live AI Optimization
+                        <span class="real-time-indicator"></span>
+                    </h3>
                     <div class="metric">
-                        <span class="metric-label">Action:</span>
-                        <span class="metric-value" id="opt_action">Loading...</span>
+                        <span class="metric-label">Current Action:</span>
+                        <span class="metric-value" id="ai_action">Loading...</span>
                     </div>
                     <div class="metric">
                         <span class="metric-label">Target Coin:</span>
-                        <span class="metric-value" id="opt_coin">Loading...</span>
+                        <span class="metric-value" id="ai_coin">Loading...</span>
                     </div>
                     <div class="metric">
                         <span class="metric-label">Confidence:</span>
-                        <span class="metric-value" id="opt_confidence">Loading...</span>
+                        <span class="metric-value" id="ai_confidence">Loading...</span>
                     </div>
                     <div class="ai-confidence">
                         <div class="confidence-indicator" id="confidence-bar" style="width: 0%"></div>
                     </div>
-                    <p><strong>Reason:</strong> <span id="opt_reason">Loading...</span></p>
-                    <button onclick="getAdvancedOptimization()">🧠 Get AI Strategy</button>
+                    <p><strong>AI Reasoning:</strong> <span id="ai_reason">Loading...</span></p>
+                    <p><strong>Expected Improvement:</strong> <span id="ai_improvement">Loading...</span></p>
+                </div>
+
+                <div class="card balance-card">
+                    <h3>💰 Live Profitability</h3>
+                    <div class="metric">
+                        <span class="metric-label">Daily Profit:</span>
+                        <span class="metric-value" id="daily_profit">Loading...</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Weekly Trend:</span>
+                        <span class="metric-value" id="weekly_trend">Loading...</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">ROI:</span>
+                        <span class="metric-value" id="roi_percentage">Loading...</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Market Score:</span>
+                        <span class="metric-value" id="market_score">Loading...</span>
+                    </div>
                 </div>
             </div>
 
             <div class="card">
-                <h3>📊 Quick Actions</h3>
-                <div class="button-group">
-                    <button onclick="sendMiningData()">📤 Send Mining Data</button>
-                    <button onclick="startMiningSession()">▶️ Start Session</button>
-                    <button onclick="trainAIModel()">🎓 Train AI Model</button>
-                    <button onclick="getMarketAnalysis()">📈 Market Analysis</button>
+                <h3>📈 Real-Time Performance Chart</h3>
+                <div class="chart-container" id="performanceChart">
+                    Real-time performance visualization will appear here
                 </div>
-                <pre id="action_response"></pre>
             </div>
         </div>
 
         <!-- AI Optimization Tab -->
         <div id="ai-optimization" class="tab-content">
             <div class="card">
-                <h3>🧠 Advanced AI Optimization</h3>
+                <h3>🧠 Advanced AI Decision Engine</h3>
                 <div class="button-group">
                     <button onclick="getAdvancedDecision()">🎯 Get Advanced Decision</button>
                     <button onclick="getModelPerformance()">📊 Model Performance</button>
@@ -248,7 +366,7 @@
             </div>
 
             <div class="card">
-                <h3>📈 Market Analysis</h3>
+                <h3>📈 Market Analysis & Predictions</h3>
                 <button onclick="getMarketAnalysis()">📊 Get Market Analysis</button>
                 <pre id="market_response"></pre>
             </div>
@@ -299,6 +417,80 @@
             </div>
         </div>
 
+        <!-- Wallet & Payouts Tab -->
+        <div id="wallet" class="tab-content">
+            <div class="dashboard">
+                <div class="card balance-card">
+                    <h3>💰 Earnings Balance</h3>
+                    <div id="balanceContainer">Loading balances...</div>
+                    <button onclick="refreshBalance()">🔄 Refresh Balance</button>
+                </div>
+
+                <div class="card">
+                    <h3>💳 My Wallets</h3>
+                    <div id="walletsContainer">Loading wallets...</div>
+                    <button onclick="showAddWalletForm()">➕ Add Wallet</button>
+                </div>
+            </div>
+
+            <div class="card" id="addWalletForm" style="display: none;">
+                <h3>➕ Add New Wallet</h3>
+                <div style="margin: 15px 0;">
+                    <label>Currency: 
+                        <select id="newWalletCurrency" style="margin-left: 10px; padding: 5px;">
+                            <option value="BTC">Bitcoin (BTC)</option>
+                            <option value="ETH">Ethereum (ETH)</option>
+                            <option value="LTC">Litecoin (LTC)</option>
+                            <option value="DOGE">Dogecoin (DOGE)</option>
+                            <option value="USDT">Tether (USDT)</option>
+                            <option value="USDC">USD Coin (USDC)</option>
+                        </select>
+                    </label><br><br>
+                    <label>Wallet Address: 
+                        <input type="text" id="newWalletAddress" placeholder="Enter your wallet address" style="margin-left: 10px; padding: 5px; width: 300px;">
+                    </label><br><br>
+                    <label>Label (optional): 
+                        <input type="text" id="newWalletLabel" placeholder="My BTC Wallet" style="margin-left: 10px; padding: 5px; width: 200px;">
+                    </label>
+                </div>
+                <div class="button-group">
+                    <button onclick="addWallet()">💾 Save Wallet</button>
+                    <button onclick="hideAddWalletForm()">❌ Cancel</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>💸 Request Payout</h3>
+                <div style="margin: 15px 0;">
+                    <label>Select Wallet: 
+                        <select id="payoutWallet" style="margin-left: 10px; padding: 5px;">
+                            <option value="">Select a wallet...</option>
+                        </select>
+                    </label><br><br>
+                    <label>Amount: 
+                        <input type="number" id="payoutAmount" step="0.00001" placeholder="0.001" style="margin-left: 10px; padding: 5px;">
+                    </label>
+                    <label style="margin-left: 10px;">Currency: 
+                        <select id="payoutCurrency" style="margin-left: 10px; padding: 5px;">
+                            <option value="BTC">BTC</option>
+                            <option value="ETH">ETH</option>
+                            <option value="USDT">USDT</option>
+                        </select>
+                    </label>
+                </div>
+                <button onclick="requestPayout()">💸 Request Payout</button>
+                <pre id="payout_response"></pre>
+            </div>
+
+            <div class="card">
+                <h3>📜 Payout History</h3>
+                <button onclick="getPayoutHistory()">📋 Load History</button>
+                <div class="payout-history" id="payoutHistory">
+                    Click "Load History" to view your payout transactions
+                </div>
+            </div>
+        </div>
+
         <!-- Cloud Storage Tab -->
         <div id="cloud-storage" class="tab-content">
             <div class="card">
@@ -327,106 +519,328 @@
 
     <script>
         const API_BASE_URL = ".";
-        let currentSessionId = null;
+        let eventSource = null;
+        let isConnected = false;
+
+        // Initialize real-time connection when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeRealTimeConnection();
+            loadWallets();
+            refreshBalance();
+        });
+
+        // Real-time connection management
+        function initializeRealTimeConnection() {
+            if (eventSource) {
+                eventSource.close();
+            }
+
+            eventSource = new EventSource(`${API_BASE_URL}/api/realtime/stream`);
+            
+            eventSource.onopen = function() {
+                isConnected = true;
+                updateConnectionStatus('connected', 'Real-time Connected');
+            };
+
+            eventSource.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                if (data.type === 'connected') {
+                    console.log('Real-time stream connected');
+                }
+            };
+
+            eventSource.addEventListener('mining_update', function(event) {
+                const data = JSON.parse(event.data);
+                updateMiningData(data);
+            });
+
+            eventSource.addEventListener('ai_decision', function(event) {
+                const data = JSON.parse(event.data);
+                updateAIData(data);
+            });
+
+            eventSource.addEventListener('profitability_update', function(event) {
+                const data = JSON.parse(event.data);
+                updateProfitabilityData(data);
+            });
+
+            eventSource.onerror = function() {
+                isConnected = false;
+                updateConnectionStatus('disconnected', 'Connection Lost');
+                // Attempt to reconnect after 5 seconds
+                setTimeout(initializeRealTimeConnection, 5000);
+            };
+        }
+
+        function updateConnectionStatus(status, message) {
+            const statusElement = document.getElementById('connectionStatus');
+            statusElement.className = `connection-status ${status}`;
+            statusElement.innerHTML = `<span class="real-time-indicator"></span> ${message}`;
+        }
+
+        function updateMiningData(data) {
+            document.getElementById('hashrate').textContent = `${data.hashrate} GH/s`;
+            document.getElementById('power_consumption').textContent = `${data.power} W`;
+            document.getElementById('temperature').textContent = `${data.temperature}°C`;
+            document.getElementById('efficiency').textContent = `${data.efficiency} GH/W`;
+            document.getElementById('profitability').textContent = `$${data.profitability}/day`;
+        }
+
+        function updateAIData(data) {
+            document.getElementById('ai_action').textContent = data.action;
+            document.getElementById('ai_coin').textContent = data.target_coin;
+            document.getElementById('ai_confidence').textContent = `${(data.confidence * 100).toFixed(1)}%`;
+            document.getElementById('ai_reason').textContent = data.reason;
+            document.getElementById('ai_improvement').textContent = data.expected_improvement;
+            
+            // Update confidence bar
+            const confidenceBar = document.getElementById('confidence-bar');
+            confidenceBar.style.width = `${data.confidence * 100}%`;
+        }
+
+        function updateProfitabilityData(data) {
+            document.getElementById('daily_profit').textContent = `$${data.daily_profit}`;
+            document.getElementById('weekly_trend').textContent = `${data.weekly_trend > 0 ? '+' : ''}${data.weekly_trend}%`;
+            document.getElementById('roi_percentage').textContent = `${data.roi_percentage}%`;
+            document.getElementById('market_score').textContent = `${(data.market_score * 100).toFixed(1)}%`;
+        }
 
         // Tab switching functionality
         function switchTab(tabName) {
-            // Hide all tab contents
             document.querySelectorAll('.tab-content').forEach(content => {
                 content.classList.remove('active');
             });
             
-            // Remove active class from all tabs
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.classList.remove('active');
             });
             
-            // Show selected tab content
             document.getElementById(tabName).classList.add('active');
-            
-            // Add active class to clicked tab
             event.target.classList.add('active');
         }
 
-        // Basic mining functions
-        async function getMiningStatus() {
+        // Wallet management functions
+        async function loadWallets() {
             try {
-                const response = await fetch(`${API_BASE_URL}/api/mining/status`);
+                const response = await fetch(`${API_BASE_URL}/api/wallet/wallets?user_id=1`);
                 const data = await response.json();
-                document.getElementById("hashrate").textContent = data.hashrate;
-                document.getElementById("power_consumption").textContent = data.power_consumption;
-                document.getElementById("temperature").textContent = data.temperature;
-                document.getElementById("profitability").textContent = data.profitability;
+                displayWallets(data.wallets);
+                populatePayoutWallets(data.wallets);
             } catch (error) {
-                console.error("Error fetching mining status:", error);
-                document.getElementById("hashrate").textContent = "Error";
+                console.error('Error loading wallets:', error);
+                document.getElementById('walletsContainer').innerHTML = '<p class="error">Error loading wallets</p>';
             }
         }
 
-        async function getAdvancedOptimization() {
+        function displayWallets(wallets) {
+            const container = document.getElementById('walletsContainer');
+            if (wallets.length === 0) {
+                container.innerHTML = '<p>No wallets added yet. Add your first wallet to receive payouts.</p>';
+                return;
+            }
+
+            let html = '';
+            wallets.forEach(wallet => {
+                html += `
+                    <div class="metric">
+                        <span class="metric-label">${wallet.currency} - ${wallet.wallet_label || 'Wallet'}:</span>
+                        <span class="wallet-address">${wallet.wallet_address.substring(0, 20)}...</span>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function populatePayoutWallets(wallets) {
+            const select = document.getElementById('payoutWallet');
+            select.innerHTML = '<option value="">Select a wallet...</option>';
+            
+            wallets.forEach(wallet => {
+                const option = document.createElement('option');
+                option.value = wallet.id;
+                option.textContent = `${wallet.currency} - ${wallet.wallet_label || 'Wallet'}`;
+                option.dataset.currency = wallet.currency;
+                select.appendChild(option);
+            });
+        }
+
+        async function refreshBalance() {
             try {
-                const response = await fetch(`${API_BASE_URL}/api/ai/advanced_strategy`);
+                const response = await fetch(`${API_BASE_URL}/api/wallet/balance?user_id=1`);
                 const data = await response.json();
-                document.getElementById("opt_action").textContent = data.action;
-                document.getElementById("opt_coin").textContent = data.coin;
-                document.getElementById("opt_reason").textContent = data.reason;
-                document.getElementById("opt_confidence").textContent = `${(data.confidence * 100).toFixed(1)}%`;
-                
-                // Update confidence bar
-                const confidenceBar = document.getElementById("confidence-bar");
-                confidenceBar.style.width = `${data.confidence * 100}%`;
+                displayBalance(data.balances, data.total_usd_value);
             } catch (error) {
-                console.error("Error fetching optimization strategy:", error);
-                document.getElementById("opt_action").textContent = "Error";
+                console.error('Error loading balance:', error);
+                document.getElementById('balanceContainer').innerHTML = '<p class="error">Error loading balance</p>';
             }
         }
 
-        async function sendMiningData() {
-            const simulatedData = {
-                timestamp: new Date().toISOString(),
-                hashrate_ghs: Math.random() * 1000 + 500,
-                power_w: Math.random() * 2000 + 1000,
-                temp_c: Math.random() * 15 + 60,
-                fan_speed_percent: Math.floor(Math.random() * 100) + 1,
-                errors: Math.floor(Math.random() * 5),
-                profitability: Math.random() * 0.1
-            };
+        function displayBalance(balances, totalUsd) {
+            const container = document.getElementById('balanceContainer');
+            let html = '';
+            
+            balances.forEach(balance => {
+                html += `
+                    <div class="metric">
+                        <span class="metric-label">${balance.currency}:</span>
+                        <span class="metric-value">${balance.available_balance.toFixed(6)}</span>
+                    </div>
+                `;
+            });
+            
+            html += `
+                <div class="metric" style="border-top: 2px solid rgba(255,255,255,0.3); margin-top: 10px; padding-top: 10px;">
+                    <span class="metric-label">Total USD Value:</span>
+                    <span class="metric-value">$${totalUsd.toFixed(2)}</span>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        function showAddWalletForm() {
+            document.getElementById('addWalletForm').style.display = 'block';
+        }
+
+        function hideAddWalletForm() {
+            document.getElementById('addWalletForm').style.display = 'none';
+            // Clear form
+            document.getElementById('newWalletAddress').value = '';
+            document.getElementById('newWalletLabel').value = '';
+        }
+
+        async function addWallet() {
+            const currency = document.getElementById('newWalletCurrency').value;
+            const address = document.getElementById('newWalletAddress').value.trim();
+            const label = document.getElementById('newWalletLabel').value.trim();
+
+            if (!address) {
+                alert('Please enter a wallet address');
+                return;
+            }
 
             try {
-                const response = await fetch(`${API_BASE_URL}/api/mining/data`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(simulatedData)
+                const response = await fetch(`${API_BASE_URL}/api/wallet/wallets`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        currency: currency,
+                        wallet_address: address,
+                        wallet_label: label || `${currency} Wallet`,
+                        user_id: 1
+                    })
                 });
+
                 const result = await response.json();
-                document.getElementById("action_response").textContent = JSON.stringify(result, null, 2);
+                
+                if (response.ok) {
+                    alert('Wallet added successfully!');
+                    hideAddWalletForm();
+                    loadWallets();
+                } else {
+                    alert(`Error: ${result.error}`);
+                }
             } catch (error) {
-                console.error("Error sending mining data:", error);
-                document.getElementById("action_response").textContent = "Error sending data";
+                console.error('Error adding wallet:', error);
+                alert('Error adding wallet');
             }
         }
 
-        // Advanced AI functions
-        async function getAdvancedDecision() {
-            const inputData = {
-                hashrate_ghs: 1000 + Math.random() * 500,
-                power_w: 2000 + Math.random() * 500,
-                temp_c: 65 + Math.random() * 15,
-                profitability: Math.random() * 0.1,
-                market_trend: ["bullish", "neutral", "bearish"][Math.floor(Math.random() * 3)]
-            };
+        async function requestPayout() {
+            const walletId = document.getElementById('payoutWallet').value;
+            const amount = parseFloat(document.getElementById('payoutAmount').value);
+            const currency = document.getElementById('payoutCurrency').value;
 
+            if (!walletId || !amount || amount <= 0) {
+                alert('Please select a wallet and enter a valid amount');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/wallet/payout`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        wallet_id: parseInt(walletId),
+                        amount: amount,
+                        currency: currency
+                    })
+                });
+
+                const result = await response.json();
+                document.getElementById('payout_response').textContent = JSON.stringify(result, null, 2);
+                
+                if (response.ok) {
+                    refreshBalance();
+                    getPayoutHistory();
+                }
+            } catch (error) {
+                console.error('Error requesting payout:', error);
+                document.getElementById('payout_response').textContent = 'Error requesting payout';
+            }
+        }
+
+        async function getPayoutHistory() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/wallet/payouts?user_id=1`);
+                const data = await response.json();
+                displayPayoutHistory(data.payouts);
+            } catch (error) {
+                console.error('Error loading payout history:', error);
+                document.getElementById('payoutHistory').innerHTML = '<p class="error">Error loading payout history</p>';
+            }
+        }
+
+        function displayPayoutHistory(payouts) {
+            const container = document.getElementById('payoutHistory');
+            
+            if (payouts.length === 0) {
+                container.innerHTML = '<p>No payout history found.</p>';
+                return;
+            }
+
+            let html = '';
+            payouts.forEach(payout => {
+                const date = new Date(payout.requested_at).toLocaleDateString();
+                html += `
+                    <div class="payout-item">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>${payout.amount} ${payout.currency}</strong>
+                                <span class="payout-status status-${payout.status}">${payout.status}</span>
+                            </div>
+                            <div style="text-align: right; font-size: 12px; color: #666;">
+                                ${date}<br>
+                                ${payout.usd_value ? '$' + payout.usd_value.toFixed(2) : ''}
+                            </div>
+                        </div>
+                        ${payout.gateway_transaction_id ? `<div style="margin-top: 5px; font-size: 12px;">TX: ${payout.gateway_transaction_id}</div>` : ''}
+                        ${payout.error_message ? `<div style="margin-top: 5px; color: #f56565; font-size: 12px;">Error: ${payout.error_message}</div>` : ''}
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // AI Optimization functions
+        async function getAdvancedDecision() {
             try {
                 const response = await fetch(`${API_BASE_URL}/api/ai/advanced_decision`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(inputData)
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        current_hashrate: 1000,
+                        current_power: 2000,
+                        current_temp: 70,
+                        market_conditions: "bullish"
+                    })
                 });
                 const result = await response.json();
-                document.getElementById("ai_response").textContent = JSON.stringify(result, null, 2);
+                document.getElementById('ai_response').textContent = JSON.stringify(result, null, 2);
             } catch (error) {
-                console.error("Error getting advanced decision:", error);
-                document.getElementById("ai_response").textContent = "Error getting decision";
+                console.error('Error getting AI decision:', error);
+                document.getElementById('ai_response').textContent = 'Error getting AI decision';
             }
         }
 
@@ -434,25 +848,28 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/api/ai/model_performance`);
                 const result = await response.json();
-                document.getElementById("ai_response").textContent = JSON.stringify(result, null, 2);
+                document.getElementById('ai_response').textContent = JSON.stringify(result, null, 2);
             } catch (error) {
-                console.error("Error getting model performance:", error);
-                document.getElementById("ai_response").textContent = "Error getting performance";
+                console.error('Error getting model performance:', error);
+                document.getElementById('ai_response').textContent = 'Error getting model performance';
             }
         }
 
         async function trainAIModel() {
             try {
                 const response = await fetch(`${API_BASE_URL}/api/ai/train_model`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({})
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model_type: "optimization",
+                        training_data_size: 1000
+                    })
                 });
                 const result = await response.json();
-                document.getElementById("action_response").textContent = JSON.stringify(result, null, 2);
+                document.getElementById('ai_response').textContent = JSON.stringify(result, null, 2);
             } catch (error) {
-                console.error("Error training model:", error);
-                document.getElementById("action_response").textContent = "Error training model";
+                console.error('Error training AI model:', error);
+                document.getElementById('ai_response').textContent = 'Error training AI model';
             }
         }
 
@@ -460,129 +877,118 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/api/ai/market_analysis`);
                 const result = await response.json();
-                document.getElementById("market_response").textContent = JSON.stringify(result, null, 2);
+                document.getElementById('market_response').textContent = JSON.stringify(result, null, 2);
             } catch (error) {
-                console.error("Error getting market analysis:", error);
-                document.getElementById("market_response").textContent = "Error getting analysis";
+                console.error('Error getting market analysis:', error);
+                document.getElementById('market_response').textContent = 'Error getting market analysis';
             }
         }
 
         async function predictPerformance() {
-            const changes = {
-                hashrate: parseFloat(document.getElementById("pred_hashrate").value),
-                power: parseFloat(document.getElementById("pred_power").value)
-            };
+            const hashrate = document.getElementById('pred_hashrate').value;
+            const power = document.getElementById('pred_power').value;
 
             try {
-                const response = await fetch(`${API_BASE_URL}/api/ai/performance_prediction`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ changes })
+                const response = await fetch(`${API_BASE_URL}/api/ai/predict_performance`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        proposed_hashrate: parseFloat(hashrate),
+                        proposed_power: parseFloat(power)
+                    })
                 });
                 const result = await response.json();
-                document.getElementById("prediction_response").textContent = JSON.stringify(result, null, 2);
+                document.getElementById('prediction_response').textContent = JSON.stringify(result, null, 2);
             } catch (error) {
-                console.error("Error predicting performance:", error);
-                document.getElementById("prediction_response").textContent = "Error predicting performance";
+                console.error('Error predicting performance:', error);
+                document.getElementById('prediction_response').textContent = 'Error predicting performance';
             }
         }
 
         // Profitability functions
         async function getProfitabilityAnalysis() {
-            const days = document.getElementById("profit_days").value;
-            const coin = document.getElementById("profit_coin").value;
+            const days = document.getElementById('profit_days').value;
+            const coin = document.getElementById('profit_coin').value;
 
             try {
-                const response = await fetch(`${API_BASE_URL}/api/mining/profitability/analysis?days=${days}&coin_type=${coin}`);
+                const response = await fetch(`${API_BASE_URL}/api/mining/profitability/analysis?days=${days}&coin=${coin}`);
                 const result = await response.json();
-                document.getElementById("profitability_response").textContent = JSON.stringify(result, null, 2);
+                document.getElementById('profitability_response').textContent = JSON.stringify(result, null, 2);
             } catch (error) {
-                console.error("Error getting profitability analysis:", error);
-                document.getElementById("profitability_response").textContent = "Error getting analysis";
-            }
-        }
-
-        async function startMiningSession() {
-            const sessionData = {
-                coin_type: "BTC",
-                hashrate_ghs: 1000 + Math.random() * 500,
-                power_w: 2000 + Math.random() * 500
-            };
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/mining/sessions`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(sessionData)
-                });
-                const result = await response.json();
-                currentSessionId = result.session_id;
-                document.getElementById("sessions_response").textContent = JSON.stringify(result, null, 2);
-            } catch (error) {
-                console.error("Error starting session:", error);
-                document.getElementById("sessions_response").textContent = "Error starting session";
+                console.error('Error getting profitability analysis:', error);
+                document.getElementById('profitability_response').textContent = 'Error getting profitability analysis';
             }
         }
 
         async function getMiningSessions() {
             try {
-                const response = await fetch(`${API_BASE_URL}/api/mining/sessions?limit=10`);
+                const response = await fetch(`${API_BASE_URL}/api/mining/sessions`);
                 const result = await response.json();
-                document.getElementById("sessions_response").textContent = JSON.stringify(result, null, 2);
+                document.getElementById('sessions_response').textContent = JSON.stringify(result, null, 2);
             } catch (error) {
-                console.error("Error getting sessions:", error);
-                document.getElementById("sessions_response").textContent = "Error getting sessions";
+                console.error('Error getting mining sessions:', error);
+                document.getElementById('sessions_response').textContent = 'Error getting mining sessions';
             }
         }
 
-        // Cloud storage functions
+        async function startMiningSession() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/mining/sessions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        coin: 'BTC',
+                        initial_hashrate: 1000,
+                        initial_power: 2000
+                    })
+                });
+                const result = await response.json();
+                document.getElementById('sessions_response').textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                console.error('Error starting mining session:', error);
+                document.getElementById('sessions_response').textContent = 'Error starting mining session';
+            }
+        }
+
+        // Cloud Storage functions
         async function getCloudStorageStats() {
             try {
-                const response = await fetch(`${API_BASE_URL}/api/ai/cloud_storage_stats`);
+                const response = await fetch(`${API_BASE_URL}/api/ai/cloud_storage/stats`);
                 const result = await response.json();
-                document.getElementById("storage_response").textContent = JSON.stringify(result, null, 2);
+                document.getElementById('storage_response').textContent = JSON.stringify(result, null, 2);
             } catch (error) {
-                console.error("Error getting storage stats:", error);
-                document.getElementById("storage_response").textContent = "Error getting stats";
+                console.error('Error getting storage stats:', error);
+                document.getElementById('storage_response').textContent = 'Error getting storage stats';
             }
         }
 
         async function uploadTrainingData() {
-            const dataType = document.getElementById("upload_type").value;
-            const sampleData = {
-                data_type: dataType,
-                data: [
-                    { timestamp: new Date().toISOString(), value: Math.random() * 100 },
-                    { timestamp: new Date().toISOString(), value: Math.random() * 100 }
-                ],
-                metadata: { source: "frontend_simulation", quality: "high" }
-            };
+            const dataType = document.getElementById('upload_type').value;
 
             try {
-                const response = await fetch(`${API_BASE_URL}/api/ai/upload_training_data`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(sampleData)
+                const response = await fetch(`${API_BASE_URL}/api/ai/cloud_storage/upload`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        data_type: dataType,
+                        data_size_mb: Math.floor(Math.random() * 100) + 10,
+                        quality_score: Math.random()
+                    })
                 });
                 const result = await response.json();
-                document.getElementById("upload_response").textContent = JSON.stringify(result, null, 2);
+                document.getElementById('upload_response').textContent = JSON.stringify(result, null, 2);
             } catch (error) {
-                console.error("Error uploading data:", error);
-                document.getElementById("upload_response").textContent = "Error uploading data";
+                console.error('Error uploading training data:', error);
+                document.getElementById('upload_response').textContent = 'Error uploading training data';
             }
         }
 
-        // Initialize dashboard
-        document.addEventListener("DOMContentLoaded", () => {
-            getMiningStatus();
-            getAdvancedOptimization();
-            
-            // Auto-refresh every 30 seconds
-            setInterval(() => {
-                getMiningStatus();
-            }, 30000);
+        // Cleanup when page unloads
+        window.addEventListener('beforeunload', function() {
+            if (eventSource) {
+                eventSource.close();
+            }
         });
     </script>
 </body>
 </html>
-
